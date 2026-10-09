@@ -8,11 +8,11 @@ concurrency:
 on:
   push:
     branches:
-      # choose your default branch
       - master
       - main
     paths-ignore:
       - '*.md'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -30,7 +30,7 @@ jobs:
           path: "builds"
       
       - name: Clean old builds
-        run: rm $GITHUB_WORKSPACE/builds/*.cs3
+        run: rm -f $GITHUB_WORKSPACE/builds/*.cs3
 
       - name: Setup JDK 17
         uses: actions/setup-java@v1
