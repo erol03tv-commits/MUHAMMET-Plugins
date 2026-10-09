@@ -1,0 +1,23 @@
+[
+    {
+        "iconUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Korduene_Logo.png",
+        "fileHash": "sha256-61b92adde423d7949edb3f8866dc2e7483ef034b392a881577a625c61fde31ec",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/erol03tv-commits/MUHAMMET-Plugins",
+        "fileSize": 10713,
+        "status": 1,
+        "language": "en",
+        "authors": [
+            "Cloudburst",
+            "Luna712"
+        ],
+        "tvTypes": [
+            "Movie"
+        ],
+        "version": 1,
+        "internalName": "ExampleProvider",
+        "description": "Lorem ipsum",
+        "url": "https://raw.githubusercontent.com/erol03tv-commits/MUHAMMET-Plugins/builds/ExampleProvider.cs3",
+        "name": "ExampleProvider"
+    }
+]
