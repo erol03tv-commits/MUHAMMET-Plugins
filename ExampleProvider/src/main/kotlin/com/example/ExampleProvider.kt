@@ -7,6 +7,8 @@ import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.newMovieSearchResponse
 import org.json.JSONObject
 import java.net.URLEncoder
+import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.utils.*
 
 class ExampleProvider : MainAPI() {
     override var mainUrl = "https://archive.org"
