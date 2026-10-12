@@ -1,61 +1,87 @@
+
 package com.example
 
-import com.lagradost.cloudstream3.MainAPI
-import com.lagradost.cloudstream3.SearchResponse
-import com.lagradost.cloudstream3.TvType
-import com.lagradost.cloudstream3.app
-import com.lagradost.cloudstream3.newMovieSearchResponse
+import com.lagradost.cloudstream3.*
 import org.json.JSONObject
 import java.net.URLEncoder
-import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.utils.*
 
 class ExampleProvider : MainAPI() {
     override var mainUrl = "https://archive.org"
-    override var name = "Internet Archive Public Domain"
-    override val supportedTypes = setOf(TvType.Movie)
+    override var name = "Internet Archive"
     override var lang = "en"
-    override val hasMainPage = false
+    override val supportedTypes = setOf(TvType.Movie)
+    override val hasMainPage = true
 
-    override suspend fun search(query: String): List<SearchResponse> {
-        if (query.isBlank()) return emptyList()
+    override val mainPage = mainPageOf(
+        Pair("publicdomain", "Public Domain Films")
+    )
 
+    private fun searchUrl(query: String, page: Int): String {
         val encodedQuery = URLEncoder.encode(query, "UTF-8")
-        val searchUrl =
-            "$mainUrl/advancedsearch.php" +
-            "?q=mediatype%3Amovies%20AND%20licenseurl%3Ahttp%2Apublicdomain%2A" +
-            "%20AND%20title%3A%22$encodedQuery%22" +
-            "&fl%5B%5D=identifier" +
-            "&fl%5B%5D=title" +
-            "&fl%5B%5D=year" +
-            "&output=json&rows=30"
+        return "$mainUrl/advancedsearch.php?q=$encodedQuery" +
+            "&fl%5B%5D=identifier&fl%5B%5D=title" +
+            "&fl%5B%5D=year&output=json&rows=24&page=$page"
+    }
 
-        return try {
-            val response = app.get(searchUrl).text
-            val docs = JSONObject(response)
-                .getJSONObject("response")
-                .getJSONArray("docs")
+    private suspend fun getMovies(
+        query: String,
+        page: Int
+    ): List<SearchResponse> {
+        val response = app.get(searchUrl(query, page)).text
+        val docs = JSONObject(response)
+            .getJSONObject("response")
+            .getJSONArray("docs")
 
-            (0 until docs.length()).mapNotNull { index ->
-                val item = docs.getJSONObject(index)
-                val identifier = item.optString("identifier")
-                val title = item.optString("title")
+        return (0 until docs.length()).mapNotNull { i ->
+            val item = docs.getJSONObject(i)
+            val id = item.optString("identifier")
+            val title = item.optString("title")
 
-                if (identifier.isBlank() || title.isBlank()) {
-                    null
-                } else {
-                    newMovieSearchResponse(
-                        title,
-                        "$mainUrl/details/$identifier",
-                        TvType.Movie
-                    ) {
-                        posterUrl = "$mainUrl/services/img/$identifier"
-                        year = item.optInt("year").takeIf { it > 0 }
-                    }
+            if (id.isBlank() || title.isBlank()) {
+                null
+            } else {
+                newMovieSearchResponse(
+                    title,
+                    "$mainUrl/details/$id",
+                    TvType.Movie
+                ) {
+                    posterUrl = "$mainUrl/services/img/$id"
+                    year = item.optString("year").toIntOrNull()
                 }
             }
+        }
+    }
+
+    override suspend fun getMainPage(
+        page: Int,
+        request: MainPageRequest
+    ): HomePageResponse {
+        val query =
+            "mediatype:movies AND licenseurl:http*publicdomain*"
+
+        val movies = try {
+            getMovies(query, page)
+        } catch (_: Exception) {
+            emptyList()
+        }
+
+        return newHomePageResponse(request.name, movies)
+    }
+
+    override suspend fun search(
+        query: String
+    ): List<SearchResponse> {
+        if (query.isBlank()) return emptyList()
+
+        val archiveQuery =
+            "mediatype:movies AND licenseurl:http*publicdomain* " +
+            "AND title:(${query})"
+
+        return try {
+            getMovies(archiveQuery, 1)
         } catch (_: Exception) {
             emptyList()
         }
     }
 }
+
