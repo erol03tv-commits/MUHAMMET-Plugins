@@ -110,16 +110,18 @@ class ExampleProvider : MainAPI() {
             val description = metadata.optString("description")
             val year = metadata.optString("year").toIntOrNull()
 
-            MovieLoadResponse(
+            
+            newMovieLoadResponse(
                 title,
                 url,
-                this.name,
                 TvType.Movie,
-                id,
-                "$mainUrl/services/img/$id",
-                year,
-                description
-            )
+                id
+            ) {
+                posterUrl = "$mainUrl/services/img/$id"
+                this.year = year
+                plot = description
+            }
+
         } catch (_: Exception) {
             null
         }
